@@ -40,7 +40,35 @@ const Login = () => {
     if (res.data.success) {
       dispatch(loginSuccess(res.data.user));
       console.log("token", res.data.token);
-      resetForm();  
+      resetForm();
+      navigate("/");
+    } else {
+      dispatch(loginFailure(res.data.message || "User Login Failed!"));
+    }
+  } catch (error) {
+    console.log("error", error);
+    dispatch(loginFailure(error.response?.data?.message || "Login Failed"));
+  } finally {
+    setSubmitting(false);
+  }
+},
+
+  });
+
+  return (
+    <div className="p-3 max-w-lg mx-auto">
+      <h1 className="text-3xl text-center font-semibold my-7">Sign In</h1>
+
+      <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
+        {/* Email Input */}
+        <input
+          type="email"
+          id="email"
+          placeholder="Email"
+          value={formik.values.email}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          className="border p-3 rounded-lg focus:outline-none"
         />
         {formik.touched.email && formik.errors.email && (
           <p className="text-red-500 text-sm">{formik.errors.email}</p>
