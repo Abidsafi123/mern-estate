@@ -1,11 +1,15 @@
  import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { loginStart,loginSuccess,loginFailure } from "../redux/user/User.js";
 import axios from "axios";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const{loading,error,user} = useSelector((state)=>state.user)
 
   // ✅ Yup Validation Schema
   const validationSchema = Yup.object({
@@ -28,41 +32,15 @@ const Login = () => {
       password: "",
     },
     validationSchema,
-    onSubmit: async (values, { setSubmitting, resetForm }) => {
-      try {
-        const res = await axios.post("http://localhost:3000/api/login", values);
+   onSubmit: async (values, { setSubmitting, resetForm }) => {
+  dispatch(loginStart());
+  try {
+    const res = await axios.post("http://localhost:3000/api/login", values);
 
-        if (res.data.success) {
-          alert(res.data.message || "User Login Successfully!");
-          console.log("token", res.data.token);
-          resetForm();
-          navigate("/");
-        } else {
-          alert(res.data.message || "User Login Failed!");
-        }
-      } catch (error) {
-        console.log("error", error);
-        alert(error.response?.data?.message || "Something went wrong!");
-      } finally {
-        setSubmitting(false);
-      }
-    },
-  });
-
-  return (
-    <div className="p-3 max-w-lg mx-auto">
-      <h1 className="text-3xl text-center font-semibold my-7">Sign In</h1>
-
-      <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
-        {/* Email Input */}
-        <input
-          type="email"
-          id="email"
-          placeholder="Email"
-          value={formik.values.email}
-          onChange={formik.handleChange}
-          onBlur={formik.handleBlur}
-          className="border p-3 rounded-lg focus:outline-none"
+    if (res.data.success) {
+      dispatch(loginSuccess(res.data.user));
+      console.log("token", res.data.token);
+      resetForm();  
         />
         {formik.touched.email && formik.errors.email && (
           <p className="text-red-500 text-sm">{formik.errors.email}</p>
