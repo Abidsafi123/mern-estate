@@ -5,6 +5,7 @@ import { loginStart,loginSuccess,loginFailure } from "../redux/user/User.js";
 import axios from "axios";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import Oauth from "../components/Oauth.jsx";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -96,6 +97,7 @@ const Login = () => {
         >
           {formik.isSubmitting ? "Logging..." : "Login"}
         </button>
+        <Oauth/>
       </form>
 
       <div className="flex gap-2 mt-5">

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import Oauth from "../components/Oauth.jsx";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -111,6 +112,7 @@ const Register = () => {
         >
           {formik.isSubmitting ? "Registering..." : "Sign Up"}
         </button>
+        <Oauth/>
       </form>
 
       <div className="flex gap-2 mt-5">
