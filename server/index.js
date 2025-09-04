@@ -1,13 +1,14 @@
 import express from "express";
 import connection from "./config/db.js";
-import userRoute from "./routes/auth_route.js";
-import router from "./routes/auth_route.js";
+import AuthRoute from "./routes/auth_route.js";
+import userRouter from './routes/userRoute.js'
 import cors from "cors";
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/api", userRoute);
+app.use("/api", AuthRoute);
+app.use('/user', userRouter);
 connection();
 
 const port = 3000;
