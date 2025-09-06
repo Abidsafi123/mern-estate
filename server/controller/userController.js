@@ -23,3 +23,31 @@ export const updateProfile = async (req, res) => {
     });
   }
 };
+//delete 
+ export const deleteProfile = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    // Use id directly
+    const remove = await userModel.findByIdAndDelete(id);
+
+    if (!remove) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found!",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User has been deleted successfully!",
+      data: remove,
+    });
+  } catch (error) {
+    console.error("Delete user error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};

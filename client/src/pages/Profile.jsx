@@ -1,24 +1,48 @@
  import React, { useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom"; // ✅ FIXED
 import {
   updateStart,
   updateSuccess,
   updateFailure,
+  deleteStart,
+  deleteSuccess,
+  deleteFailure,
 } from "../redux/user/User";
 import axios from "axios";
 import ClipLoader from "react-spinners/ClipLoader";
 
 const Profile = () => {
+  const navigate = useNavigate(); // ✅ FIXED
   const fileRef = useRef(null);
-  const { currentUser,error } = useSelector((state) => state.user);
+  const { currentUser, error } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   const [fileUrl, setFileUrl] = useState(currentUser?.avatar || "");
   const [uploading, setUploading] = useState(false);
+  const [updatemsg, setUpdatemsg] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [username, setUsername] = useState(currentUser?.username || "");
   const [email, setEmail] = useState(currentUser?.email || "");
   const [password, setPassword] = useState("");
+
+  // ✅ Delete profile
+  const handleDelete = async () => {
+    try {
+      dispatch(deleteStart());
+
+      const res = await axios.delete(
+        `http://localhost:3000/user/delete/${currentUser._id}`
+      );
+
+      dispatch(deleteSuccess(res.data));
+      alert("Account deleted successfully ✅");
+      navigate("/login", { replace: true }); // ✅ redirect
+    } catch (error) {
+      dispatch(deleteFailure(error.response?.data?.message || error.message));
+      console.error("Delete failed:", error);
+    }
+  };
 
   // ✅ Cloudinary config
   const CLOUD_NAME = "dg37tijbo";
@@ -56,25 +80,22 @@ const Profile = () => {
     setUpdating(true);
 
     try {
-      const res = await fetch(
-        `http://localhost:3000/user/${currentUser._id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username,
-            email,
-            ...(password && { password }),
-            avatar: fileUrl,
-          }),
-        }
-      );
+      const res = await fetch(`http://localhost:3000/user/${currentUser._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          email,
+          ...(password && { password }),
+          avatar: fileUrl,
+        }),
+      });
 
       const data = await res.json();
       dispatch(updateSuccess(data));
-      alert("Profile updated successfully ✅");
+      setUpdatemsg(true);
     } catch (err) {
       dispatch(updateFailure(err.message));
       console.error("Update error:", err);
@@ -152,12 +173,17 @@ const Profile = () => {
       </form>
 
       <div className="flex justify-between mt-5">
-        <span className="text-red-700 cursor-pointer">Delete Account</span>
-        <span className="text-red-700 cursor-pointer">Sign Out</span>
-        {
-         <p className="text-red-700 text-sm mt-3">{error ?error :""}</p>
-        }
+        <span className="text-red-700 cursor-pointer" onClick={handleDelete}>
+          Delete Account
+        </span>
+        <span
+          className="text-red-700 cursor-pointer"
+          onClick={() => navigate("/login")}
+        >
+          Sign Out
+        </span>
       </div>
+      {<p className=" text-green-700 ">{updatemsg ? "User Updated Successfully" : ""}</p>}
     </div>
   );
 };
