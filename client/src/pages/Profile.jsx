@@ -1,6 +1,6 @@
  import React, { useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom"; // ✅ FIXED
+import { useNavigate } from "react-router-dom";
 import {
   updateStart,
   updateSuccess,
@@ -8,12 +8,13 @@ import {
   deleteStart,
   deleteSuccess,
   deleteFailure,
+  logout, // ✅ import logout
 } from "../redux/user/User";
 import axios from "axios";
 import ClipLoader from "react-spinners/ClipLoader";
 
 const Profile = () => {
-  const navigate = useNavigate(); // ✅ FIXED
+  const navigate = useNavigate();
   const fileRef = useRef(null);
   const { currentUser, error } = useSelector((state) => state.user);
   const dispatch = useDispatch();
@@ -37,11 +38,18 @@ const Profile = () => {
 
       dispatch(deleteSuccess(res.data));
       alert("Account deleted successfully ✅");
-      navigate("/login", { replace: true }); // ✅ redirect
+      navigate("/login", { replace: true });
     } catch (error) {
       dispatch(deleteFailure(error.response?.data?.message || error.message));
       console.error("Delete failed:", error);
     }
+  };
+
+  // ✅ Sign out
+  const handleSignOut = () => {
+    dispatch(logout()); // clear Redux state
+    localStorage.removeItem("user"); // if stored
+    navigate("/login");
   };
 
   // ✅ Cloudinary config
@@ -176,14 +184,12 @@ const Profile = () => {
         <span className="text-red-700 cursor-pointer" onClick={handleDelete}>
           Delete Account
         </span>
-        <span
-          className="text-red-700 cursor-pointer"
-          onClick={() => navigate("/login")}
-        >
+        <span className="text-red-700 cursor-pointer" onClick={handleSignOut}>
           Sign Out
         </span>
       </div>
-      {<p className=" text-green-700 ">{updatemsg ? "User Updated Successfully" : ""}</p>}
+
+      {<p className="text-green-700">{updatemsg ? "User Updated Successfully" : ""}</p>}
     </div>
   );
 };
