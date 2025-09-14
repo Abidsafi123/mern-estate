@@ -10,7 +10,7 @@ app.use(express.json());
 
 app.use("/api", AuthRoute);
 app.use('/user', userRouter);
- app.use('/api',listingRouter)
+ app.use('/list',listingRouter)
  
 connection();
 
