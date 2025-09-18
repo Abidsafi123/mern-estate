@@ -18,4 +18,30 @@ export const createListing = async (req, res) => {
       error: error.message,
     });
   }
-};
+}; 
+export const removeListing = async(req,res)=>{
+  const id = req.params.id;
+  try {
+    const listing = await listingModel.findById(id)
+    if(!listing){
+   return res.status(404).json({
+      success:false,
+      message:"Listing Not Found"
+    })
+    }
+ 
+    await listingModel.findByIdAndDelete(id)
+    return res.status(201).json({
+      success:true,
+      message:"listing Deleted successfully"
+    })
+    
+  } catch (error) {
+    res.status(500).json({
+      success:false,
+      message:"Internal server error",
+      error:error.message
+    })
+    
+  }
+}

@@ -148,6 +148,29 @@ const Profile = () => {
   }
 };
 
+//delte list
+// ✅ Delete Listing
+const handleDeleteListing = async (listingId) => {
+  if (!window.confirm("Are you sure you want to delete this listing?")) return;
+
+  try {
+    const res = await axios.delete(
+      `http://localhost:3000/list/remove/${listingId}`
+    );
+
+    if (res.data.success) {
+      setUserListing((prev) => prev.filter((l) => l._id !== listingId));
+      alert(res.data.message ||  "Listing deleted successfully ✅");
+    } else {
+      alert(res.data.message || "Failed to delete listing ❌");
+    }
+  } catch (error) {
+    console.error("Delete listing error:", error);
+    alert("Error deleting listing ❌");
+  }
+};
+
+
 
   return (
     <div className="p-3 max-w-lg mx-auto">
@@ -260,7 +283,7 @@ const Profile = () => {
     </Link>
 
     <div className="flex flex-col items-center">
-      <button className="text-red-700 uppercase">Delete</button>
+      <button className="text-red-700 uppercase" onClick={()=>handleDeleteListing(listing._id)}>Delete</button>
 <button className="text-green-700">Edit</button>
 
     </div>
