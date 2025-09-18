@@ -1,5 +1,5 @@
 import userModel from "../model/user.js";
-
+import listingModel from "../model/listing.model.js";
 export const updateProfile = async (req, res) => {
   try {
     const id = req.params.id;
@@ -23,8 +23,8 @@ export const updateProfile = async (req, res) => {
     });
   }
 };
-//delete 
- export const deleteProfile = async (req, res) => {
+//delete
+export const deleteProfile = async (req, res) => {
   try {
     const id = req.params.id;
 
@@ -48,6 +48,33 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Internal server error",
+    });
+  }
+};
+export const getUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // find all listings for that user
+    const findUser = await listingModel.find({ userRef: id });
+
+    if (!findUser || findUser.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No Listing Found for this user",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      listings: findUser,
+    });
+  } catch (error) {
+    console.error("Error in getUser:", error); // 👈 log actual error
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message, // optional: send error details in dev
     });
   }
 };

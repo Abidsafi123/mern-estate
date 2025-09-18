@@ -1,5 +1,6 @@
- import React, { useState } from "react";
+  import React, { useState } from "react";
 import axios from "axios";
+import { useSelector } from "react-redux";
 
 // ✅ Cloudinary Config
 const CLOUD_NAME = "dg37tijbo"; // your Cloudinary cloud name
@@ -10,50 +11,53 @@ const CreateListing = () => {
   const [files, setFiles] = useState([]);
   const [imageUrls, setImageUrls] = useState([]);
   const [uploading, setUploading] = useState(false);
-const[error,setError] = useState("")
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const { currentUser } = useSelector((state) => state.user);
+  const [loading, setLoading] = useState(false);
 
-const [loading,setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     address: "",
     type: "rent",
     bedrooms: 1,
-    bathRooms: 1,
+    bathrooms: 1,
     regularPrice: 50,
     discountPrice: 50,
     offer: false,
     parking: false,
     furnished: false,
   });
-console.log(formData)
+
   // ✅ Handle Form Changes
   const handleChange = (e) => {
     const { id, value, type, checked } = e.target;
 
-    // handle rent / sale toggle
     if (id === "sale" || id === "rent") {
       setFormData((prev) => ({ ...prev, type: id }));
-    }
-    // handle boolean checkboxes
-    else if (id === "furnished" || id === "parking" || id === "offer") {
+    } else if (id === "furnished" || id === "parking" || id === "offer") {
       setFormData((prev) => ({ ...prev, [id]: checked }));
-    }
-    // handle numbers and text
-    else {
-      setFormData((prev) => ({ ...prev, [id]: type === "number" ? Number(value) : value }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [id]: type === "number" ? Number(value) : value,
+      }));
     }
   };
 
   // ✅ Handle Upload
   const handleImageSubmit = async (e) => {
     e.preventDefault();
-    if (!files || files.length === 0) return  setError("Please select atleast one image!");
-    if (files.length > 6) return alert("You can only upload up to 6 images");
+    setError("");
+    setSuccess("");
+
+    if (!files || files.length === 0)
+      return setError("Please select at least one image!");
+    if (files.length > 6) return setError("You can only upload up to 6 images");
 
     try {
       setUploading(true);
-       
       const urls = [];
 
       for (let i = 0; i < files.length; i++) {
@@ -71,11 +75,10 @@ console.log(formData)
       }
 
       setImageUrls(urls);
-      alert("Images uploaded successfully!");
+      setSuccess("✅ Images uploaded successfully!");
     } catch (err) {
       console.error("Upload failed:", err);
-      setError(err.message)
-
+      setError(err.message);
     } finally {
       setUploading(false);
     }
@@ -85,39 +88,39 @@ console.log(formData)
   const handleDeleteImage = (index) => {
     setImageUrls((prev) => prev.filter((_, i) => i !== index));
   };
- const handleSubmit = async (e) => {
-  e.preventDefault();
 
-  if (imageUrls.length === 0) {
-   setError("Please upload atleast one image!")
-  }
-
-  try {
-    setLoading(true);
+  // ✅ Submit Listing
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setError("");
-const payload = {
-  ...formData,
-  imageUrl: imageUrls,
- userRef:"userid"
-};
+    setSuccess("");
 
-
-    const res = await axios.post("http://localhost:3000/list/create", payload);
-
-    // ✅ Since your backend returns { listing }, just check it
-    if (res.data.listing) {
-      alert("Listing created successfully!");
-      console.log("Created Listing:", res.data.listing);
-    } else {
-      alert("Listing creation failed!");
+    if (imageUrls.length === 0) {
+      return setError("Please upload at least one image!");
     }
-  } catch (error) {
-    console.error("Error creating listing:", error);
-    setError(error.response.data.message);
-  } finally {
-    setLoading(false);
-  }
-};
+
+    try {
+      setLoading(true);
+
+      const res = await axios.post("http://localhost:3000/list/create", {
+        ...formData,
+        imageUrl: imageUrls,
+        userRef: currentUser._id,
+      });
+
+      if (res.data.listing) {
+        console.log("Created Listing:", res.data.listing);
+        setSuccess("✅ Listing created successfully!");
+      } else {
+        setError("Listing creation failed!");
+      }
+    } catch (error) {
+      console.error("Error creating listing:", error);
+      setError(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="p-3 max-w-4xl mx-auto">
@@ -229,12 +232,12 @@ const payload = {
             <div className="flex items-center gap-2 ">
               <input
                 type="number"
-                id="bathRooms"
+                id="bathrooms"
                 min="1"
                 max="10"
                 required
                 onChange={handleChange}
-                value={formData.bathRooms}
+                value={formData.bathrooms}
                 className="p-3 border border-gray-300 rounded-lg"
               />
               <p>Baths</p>
@@ -330,12 +333,14 @@ const payload = {
           <button
             type="submit"
             className="p-3 bg-slate-700 uppercase text-white rounded-lg hover:opacity-95 disabled:opacity-80"
+            disabled={loading}
           >
-            Create Listing
+            {loading ? "Creating Listing..." : "Create Listing"}
           </button>
-          {
-            error ? <p className="text-red-500 text-sm">{error}</p>:""
-          }
+
+          {/* ✅ Messages */}
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {success && <p className="text-green-600 text-sm">{success}</p>}
         </div>
       </form>
     </main>
