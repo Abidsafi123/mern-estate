@@ -28,7 +28,7 @@ const Profile = () => {
   const [email, setEmail] = useState(currentUser?.email || "");
   const [password, setPassword] = useState("");
   const [listingError, setListingError] = useState(false);
-  const[userListing,setUserListing] = useState([])
+  const [userListing, setUserListing] = useState([]);
   // ✅ Delete profile
   const handleDelete = async () => {
     try {
@@ -114,8 +114,8 @@ const Profile = () => {
     }
   };
   // const handleShowListing = async () => {
-    
-  //   try { 
+
+  //   try {
   //     setListingError(false)
   //     const res = await axios.get(`http://localhost:3000/user/show/${currentUser._id}`)
   //     if(res.data.success ===false){
@@ -129,48 +129,70 @@ const Profile = () => {
   //   }
   // };
   const handleShowListing = async () => {
-  try {
-    setListingError(false);
-    const res = await axios.get(
-      `http://localhost:3000/user/show/${currentUser._id}`
-    );
+    try {
+      setListingError(false);
+      const res = await axios.get(
+        `http://localhost:3000/user/show/${currentUser._id}`
+      );
 
-    if (res.data.success === false) {
+      if (res.data.success === false) {
+        setListingError(true);
+        return;
+      }
+
+      // ✅ save only the listings array
+      setUserListing(res.data.listings || []);
+    } catch (error) {
+      console.error("Error fetching listings:", error);
       setListingError(true);
+    }
+  };
+  //edit import axios from "axios";
+
+  const editListing = async (id, updateData) => {
+    try {
+      const res = await axios.put(
+        `http://localhost:3000/list/update/${id}`, // ✅ use /list not /user if it's listing
+        updateData
+      );
+
+      if (res.data.success) {
+        console.log("✅ Listing updated:", res.data.listing);
+        return res.data.listing; // return updated listing
+      } else {
+        console.error(" Failed to update listing:", res.data.message);
+        return null;
+      }
+    } catch (error) {
+      console.error(
+        " Edit listing error:",
+        error.response?.data?.message || error.message
+      );
+      throw error;
+    }
+  };
+
+  //Delete Listing
+  const handleDeleteListing = async (listingId) => {
+    if (!window.confirm("Are you sure you want to delete this listing?"))
       return;
+
+    try {
+      const res = await axios.delete(
+        `http://localhost:3000/list/remove/${listingId}`
+      );
+
+      if (res.data.success) {
+        setUserListing((prev) => prev.filter((l) => l._id !== listingId));
+        alert(res.data.message || "Listing deleted successfully ✅");
+      } else {
+        alert(res.data.message || "Failed to delete listing ❌");
+      }
+    } catch (error) {
+      console.error("Delete listing error:", error);
+      alert("Error deleting listing ❌");
     }
-
-    // ✅ save only the listings array
-    setUserListing(res.data.listings || []);
-  } catch (error) {
-    console.error("Error fetching listings:", error);
-    setListingError(true);
-  }
-};
-
-//delte list
-// ✅ Delete Listing
-const handleDeleteListing = async (listingId) => {
-  if (!window.confirm("Are you sure you want to delete this listing?")) return;
-
-  try {
-    const res = await axios.delete(
-      `http://localhost:3000/list/remove/${listingId}`
-    );
-
-    if (res.data.success) {
-      setUserListing((prev) => prev.filter((l) => l._id !== listingId));
-      alert(res.data.message ||  "Listing deleted successfully ✅");
-    } else {
-      alert(res.data.message || "Failed to delete listing ❌");
-    }
-  } catch (error) {
-    console.error("Delete listing error:", error);
-    alert("Error deleting listing ❌");
-  }
-};
-
-
+  };
 
   return (
     <div className="p-3 max-w-lg mx-auto">
@@ -263,33 +285,44 @@ const handleDeleteListing = async (listingId) => {
       <button className="text-green-700 w-full " onClick={handleShowListing}>
         Show Listing
       </button>
-      
-      <p className="text-red-700 mt-5">{listingError ? "Error showing listing":"" }</p>
+
+      <p className="text-red-700 mt-5">
+        {listingError ? "Error showing listing" : ""}
+      </p>
       <h1 className="text-center mb-4 font-semibold text-2xl">Your Listings</h1>
-      {userListing && userListing.length >
-       0 && userListing.map((listing) => (
-  <div key={listing._id} className=" gap-4 border rounded-lg p-3 flex justify-between items-center">
- 
-    {/* Show only the first image */}
-    <Link to={`/listing/${listing._id}`}>
-      <img
-        className="h-16 w-16 object-contain "
-        src={listing.imageUrl?.[0]} 
-        alt="listing cover"
-      />
-    </Link>
-    <Link to={`/listing/${listing._id}`} className="text-slate-700 font-semibold hover:underline truncate flex-1">
-    <p >{listing.name}</p>
-    </Link>
+      {userListing &&
+        userListing.length > 0 &&
+        userListing.map((listing) => (
+          <div
+            key={listing._id}
+            className=" gap-4 border rounded-lg p-3 flex justify-between items-center"
+          >
+            {/* Show only the first image */}
+            <Link to={`/listing/${listing._id}`}>
+              <img
+                className="h-16 w-16 object-contain "
+                src={listing.imageUrl?.[0]}
+                alt="listing cover"
+              />
+            </Link>
+            <Link
+              to={`/listing/${listing._id}`}
+              className="text-slate-700 font-semibold hover:underline truncate flex-1"
+            >
+              <p>{listing.name}</p>
+            </Link>
 
-    <div className="flex flex-col items-center">
-      <button className="text-red-700 uppercase" onClick={()=>handleDeleteListing(listing._id)}>Delete</button>
-<button className="text-green-700">Edit</button>
-
-    </div>
-  </div>
-))}
-
+            <div className="flex flex-col items-center">
+              <button
+                className="text-red-700 uppercase"
+                onClick={() => handleDeleteListing(listing._id)}
+              >
+                Delete
+              </button>
+              <button className="text-green-700">Edit</button>
+            </div>
+          </div>
+        ))}
     </div>
   );
 };
