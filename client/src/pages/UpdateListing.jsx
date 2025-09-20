@@ -96,6 +96,7 @@ const UpdateListing = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    navigate(`/listing/${params.id}`)
 
     if (imageUrls.length === 0) {
       return setError("Please upload at least one image!");
