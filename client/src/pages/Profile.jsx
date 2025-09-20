@@ -147,30 +147,30 @@ const Profile = () => {
       setListingError(true);
     }
   };
-  //edit import axios from "axios";
+  // //edit import axios from "axios";
 
-  const editListing = async (id, updateData) => {
-    try {
-      const res = await axios.put(
-        `http://localhost:3000/list/update/${id}`, // ✅ use /list not /user if it's listing
-        updateData
-      );
+  // const editListing = async (id, updateData) => {
+  //   try {
+  //     const res = await axios.put(
+  //       `http://localhost:3000/list/update/${id}`, // ✅ use /list not /user if it's listing
+  //       updateData
+  //     );
 
-      if (res.data.success) {
-        console.log("✅ Listing updated:", res.data.listing);
-        return res.data.listing; // return updated listing
-      } else {
-        console.error(" Failed to update listing:", res.data.message);
-        return null;
-      }
-    } catch (error) {
-      console.error(
-        " Edit listing error:",
-        error.response?.data?.message || error.message
-      );
-      throw error;
-    }
-  };
+  //     if (res.data.success) {
+  //       console.log("✅ Listing updated:", res.data.listing);
+  //       return res.data.listing; // return updated listing
+  //     } else {
+  //       console.error(" Failed to update listing:", res.data.message);
+  //       return null;
+  //     }
+  //   } catch (error) {
+  //     console.error(
+  //       " Edit listing error:",
+  //       error.response?.data?.message || error.message
+  //     );
+  //     throw error;
+  //   }
+  // };
 
   //Delete Listing
   const handleDeleteListing = async (listingId) => {
@@ -319,7 +319,10 @@ const Profile = () => {
               >
                 Delete
               </button>
+              <Link to={`/update-listing/${listing._id}`}>
               <button className="text-green-700">Edit</button>
+              </Link>
+             
             </div>
           </div>
         ))}
