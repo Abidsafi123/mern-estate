@@ -1,4 +1,4 @@
-  import React, { useState } from "react";
+ import React, { useState } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 
@@ -30,7 +30,7 @@ const CreateListing = () => {
     furnished: false,
   });
 
-  // ✅ Handle Form Changes
+  // ✅ Handle Form Changes with validation
   const handleChange = (e) => {
     const { id, value, type, checked } = e.target;
 
@@ -39,9 +39,21 @@ const CreateListing = () => {
     } else if (id === "furnished" || id === "parking" || id === "offer") {
       setFormData((prev) => ({ ...prev, [id]: checked }));
     } else {
+      const newValue = type === "number" ? Number(value) : value;
+
+      // ✅ Validation: discountPrice must be less than regularPrice
+      if (id === "discountPrice") {
+        if (newValue >= formData.regularPrice) {
+          setError("⚠️ Discount price must be less than regular price");
+          return; // stop updating state
+        } else {
+          setError(""); // clear error
+        }
+      }
+
       setFormData((prev) => ({
         ...prev,
-        [id]: type === "number" ? Number(value) : value,
+        [id]: newValue,
       }));
     }
   };
@@ -97,6 +109,10 @@ const CreateListing = () => {
 
     if (imageUrls.length === 0) {
       return setError("Please upload at least one image!");
+    }
+
+    if (formData.discountPrice >= formData.regularPrice) {
+      return setError("⚠️ Discount price must be less than regular price");
     }
 
     try {
@@ -253,9 +269,12 @@ const CreateListing = () => {
                 value={formData.regularPrice}
                 className="p-3 border border-gray-300 rounded-lg"
               />
+              
               <div className="flex flex-col items-center">
                 <p>Regular Price</p>
-                <span className="text-sm">($/Month)</span>
+                {
+                  formData.type === 'rent' ? <span className="text-sm">($/Month)</span>:""
+                }
               </div>
             </div>
             <div className="flex items-center gap-2 ">
@@ -269,6 +288,9 @@ const CreateListing = () => {
               />
               <div className="flex flex-col items-center">
                 <p>Discount Price</p>
+                 {
+                  formData.type === 'rent' ? <span className="text-sm">($/Month)</span>:""
+                }
                 <span className="text-sm">($/Month)</span>
               </div>
             </div>
@@ -333,7 +355,7 @@ const CreateListing = () => {
           <button
             type="submit"
             className="p-3 bg-slate-700 uppercase text-white rounded-lg hover:opacity-95 disabled:opacity-80"
-            disabled={loading}
+            disabled={loading || formData.discountPrice >= formData.regularPrice}
           >
             {loading ? "Creating Listing..." : "Create Listing"}
           </button>
