@@ -78,3 +78,25 @@ export const getUser = async (req, res) => {
     });
   }
 };
+
+export const getUser1 = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.params.id)
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User Not Found"
+      })
+    }
+    const { password: pass, ...rest } = user._doc
+    return res.status(200).json({
+      success: true,
+      user: rest
+    })
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "internal server error"
+    })
+  }
+}
