@@ -1,7 +1,7 @@
- import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom"; // ✅ added useLocation
+import React, { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
- import List from "../components/List";
+import List from "../components/List";
 
 const Search = () => {
   const [sidebarData, setsideBarData] = useState({
@@ -15,8 +15,9 @@ const Search = () => {
   });
   const [loading, setLoading] = useState(false);
   const [listing, setListing] = useState([]);
+  const [showAll, setShowAll] = useState(false); // ✅ state for show more
   const navigate = useNavigate();
-  const location = useLocation(); // ✅ fix
+  const location = useLocation();
 
   const handleChange = (e) => {
     const { id, value, checked } = e.target;
@@ -52,10 +53,11 @@ const Search = () => {
     urlParams.set("parking", sidebarData.parking);
     const searchQuery = urlParams.toString();
     navigate(`/search?${searchQuery}`);
+    setShowAll(false); // reset on new search
   };
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.search); // ✅ fixed typo
+    const urlParams = new URLSearchParams(location.search);
     const searchTermFromurl = urlParams.get("searchTerm");
     const typeOfFromurl = urlParams.get("type");
     const parkingFromurl = urlParams.get("parking");
@@ -89,10 +91,10 @@ const Search = () => {
         setLoading(true);
         const searchQuery = urlParams.toString();
         const res = await axios.get(
-          `http://localhost:3000/list/get?${searchQuery}` // ✅ fixed URL
+          `http://localhost:3000/list/get?${searchQuery}`
         );
         if (res.data.success) {
-          setListing(res.data.listings); // ✅ assume backend sends { success:true, listings:[] }
+          setListing(res.data.listings);
         } else {
           setListing([]);
         }
@@ -105,6 +107,9 @@ const Search = () => {
     };
     fetchListing();
   }, [location.search]);
+
+  // ✅ Slice listings for show more feature
+  const displayedListings = showAll ? listing : listing.slice(0, 7);
 
   return (
     <div className="flex flex-col md:flex-row">
@@ -141,11 +146,35 @@ const Search = () => {
             <p className="text-center text-slate-700 w-full ">Loading...</p>
           )}
           {!loading &&
-            listing.length > 0 &&
-            listing.map((item) => (
+            displayedListings.length > 0 &&
+            displayedListings.map((item) => (
               <List key={item._id} listing={item} />
             ))}
         </div>
+
+        {/* ✅ Show More button */}
+        {!loading && listing.length > 7 && !showAll && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={() => setShowAll(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+            >
+              Show More
+            </button>
+          </div>
+        )}
+
+        {/* ✅ Optional: Show Less */}
+        {showAll && listing.length > 7 && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={() => setShowAll(false)}
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 transition"
+            >
+              Show Less
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
