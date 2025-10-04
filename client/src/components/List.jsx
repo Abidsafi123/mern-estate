@@ -1,29 +1,75 @@
-import React, { useState } from "react";
-import List from "./List";
+import React from "react";
+import { Link } from "react-router-dom";
+import { MdLocationOn } from "react-icons/md";
 
-const Lists = ({ listings }) => {
-  const [visible, setVisible] = useState(7); // show first 7
+const List = ({ listing }) => {
+  // ✅ Calculate discount %
+  const discountPercent =
+    listing.offer && listing.regularPrice
+      ? Math.round(
+          ((listing.regularPrice - listing.discountPrice) /
+            listing.regularPrice) *
+            100
+        )
+      : null;
 
   return (
-    <div className="flex flex-col items-center">
-      {/* Listings Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-        {listings.slice(0, visible).map((listing) => (
-          <List key={listing._id} listing={listing} />
-        ))}
-      </div>
+    <div className="bg-white shadow-md hover:shadow-lg transition-shadow overflow-hidden rounded-lg">
+      <Link to={`/listing/${listing._id}`}>
+        {/* Cover Image */}
+        <img
+          className="h-[320px] sm:h-[220px] w-full object-cover hover:scale-105 transition-transform duration-300"
+          src={listing.imageUrl[0]}
+          alt="listing_cover"
+        />
 
-      {/* Show More Button */}
-      {visible < listings.length && (
-        <button
-          onClick={() => setVisible((prev) => prev + 7)}
-          className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
-          Show More
-        </button>
-      )}
+        {/* Content */}
+        <div className="p-3 flex flex-col gap-2 w-full">
+          {/* Title */}
+          <p className="truncate text-lg font-semibold text-slate-700 w-full sm:w-[330px]">
+            {listing.name}
+          </p>
+
+          {/* Address */}
+          <div className="flex items-center gap-1">
+            <MdLocationOn className="h-4 w-4 text-green-700" />
+            <p className="text-sm text-gray-600 truncate">{listing.address}</p>
+          </div>
+
+          {/* Description */}
+          <p className="text-sm text-gray-600 truncate">
+            {listing.description}
+          </p>
+
+          {/* Price + Discount */}
+          <p className="font-semibold text-slate-700 flex items-center gap-2">
+            {listing.offer
+              ? `$${listing.discountPrice.toLocaleString("en-US")}`
+              : `$${listing.regularPrice.toLocaleString("en-US")}`}
+            {listing.type === "rent" && " / month"}
+
+            {discountPercent && (
+              <span className="text-green-600 text-sm font-medium">
+                ({discountPercent}% OFF)
+              </span>
+            )}
+          </p>
+
+          {/* Features */}
+          <div className="flex gap-4 text-sm text-gray-600 mt-2">
+            <span>
+              {listing.bedrooms > 1 ? `${listing.bedrooms} Beds` : "1 Bed"}
+            </span>
+            <span>
+              {listing.bathrooms > 1 ? `${listing.bathrooms} Baths` : "1 Bath"}
+            </span>
+            {listing.parking && <span>Parking</span>}
+            {listing.furnished && <span>Furnished</span>}
+          </div>
+        </div>
+      </Link>
     </div>
   );
 };
 
-export default Lists;
+export default List;

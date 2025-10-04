@@ -1,4 +1,4 @@
- import React, { useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 
@@ -13,8 +13,9 @@ const CreateListing = () => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const { currentUser } = useSelector((state) => state.user);
   const [loading, setLoading] = useState(false);
+
+  const { currentUser } = useSelector((state) => state.user);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -24,13 +25,13 @@ const CreateListing = () => {
     bedrooms: 1,
     bathrooms: 1,
     regularPrice: 50,
-    discountPrice: 50,
+    discountPrice: 40,
     offer: false,
     parking: false,
     furnished: false,
   });
 
-  // ✅ Handle Form Changes with validation
+  // ✅ Handle Form Changes
   const handleChange = (e) => {
     const { id, value, type, checked } = e.target;
 
@@ -41,13 +42,12 @@ const CreateListing = () => {
     } else {
       const newValue = type === "number" ? Number(value) : value;
 
-      // ✅ Validation: discountPrice must be less than regularPrice
       if (id === "discountPrice") {
         if (newValue >= formData.regularPrice) {
-          setError("⚠️ Discount price must be less than regular price");
-          return; // stop updating state
+          setError(" Discount price must be less than regular price");
+          return;
         } else {
-          setError(""); // clear error
+          setError("");
         }
       }
 
@@ -58,7 +58,7 @@ const CreateListing = () => {
     }
   };
 
-  // ✅ Handle Upload
+  // ✅ Upload Images to Cloudinary
   const handleImageSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -96,7 +96,7 @@ const CreateListing = () => {
     }
   };
 
-  // ✅ Delete Image from preview
+  // ✅ Delete Image
   const handleDeleteImage = (index) => {
     setImageUrls((prev) => prev.filter((_, i) => i !== index));
   };
@@ -112,24 +112,26 @@ const CreateListing = () => {
     }
 
     if (formData.discountPrice >= formData.regularPrice) {
-      return setError("⚠️ Discount price must be less than regular price");
+      return setError("Discount price must be less than regular price");
     }
 
     try {
       setLoading(true);
 
-      const res = await axios.post("http://localhost:3000/list/create", {
-        ...formData,
-        imageUrl: imageUrls,
-        userRef: currentUser._id,
-      });
+      const res = await axios.post(
+        "http://localhost:3000/list/create", // ✅ matches backend
+        {
+          ...formData,
+          imageUrl: imageUrls,
+          userRef: currentUser._id,
+        },
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
-      if (res.data.listing) {
-        console.log("Created Listing:", res.data.listing);
-        setSuccess("✅ Listing created successfully!");
-      } else {
-        setError("Listing creation failed!");
-      }
+      console.log("Created Listing Response:", res.data);
+      setSuccess(" Listing created successfully!");
     } catch (error) {
       console.error("Error creating listing:", error);
       setError(error.response?.data?.message || "Something went wrong");
@@ -269,12 +271,12 @@ const CreateListing = () => {
                 value={formData.regularPrice}
                 className="p-3 border border-gray-300 rounded-lg"
               />
-              
+
               <div className="flex flex-col items-center">
                 <p>Regular Price</p>
-                {
-                  formData.type === 'rent' ? <span className="text-sm">($/Month)</span>:""
-                }
+                {formData.type === "rent" && (
+                  <span className="text-sm">($/Month)</span>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2 ">
@@ -288,10 +290,9 @@ const CreateListing = () => {
               />
               <div className="flex flex-col items-center">
                 <p>Discount Price</p>
-                 {
-                  formData.type === 'rent' ? <span className="text-sm">($/Month)</span>:""
-                }
-                <span className="text-sm">($/Month)</span>
+                {formData.type === "rent" && (
+                  <span className="text-sm">($/Month)</span>
+                )}
               </div>
             </div>
           </div>
@@ -307,7 +308,7 @@ const CreateListing = () => {
           <div className="flex gap-4">
             <input
               type="file"
-              onChange={(e) => setFiles(e.target.files)}
+              onChange={(e) => setFiles(Array.from(e.target.files))}
               accept="image/*"
               id="images"
               className="border border-gray-300 p-3 w-full rounded"
@@ -323,7 +324,7 @@ const CreateListing = () => {
             </button>
           </div>
 
-          {/* Preview with delete button */}
+          {/* Preview */}
           {imageUrls.length > 0 && (
             <div className="grid grid-cols-2 gap-3 mt-3">
               {imageUrls.map((url, idx) => (
@@ -333,13 +334,11 @@ const CreateListing = () => {
                     alt="listing"
                     className="rounded-lg w-full h-40 object-cover"
                   />
-
                   {idx === 0 && (
                     <span className="absolute top-1 left-1 bg-black text-white text-xs px-2 py-1 rounded">
                       Cover
                     </span>
                   )}
-
                   <button
                     type="button"
                     onClick={() => handleDeleteImage(idx)}
@@ -354,7 +353,7 @@ const CreateListing = () => {
 
           <button
             type="submit"
-            className="p-3 bg-slate-700 uppercase text-white rounded-lg hover:opacity-95 disabled:opacity-80"
+            className="cursor-pointer p-3 bg-slate-700 uppercase text-white rounded-lg hover:opacity-95 disabled:opacity-80"
             disabled={loading || formData.discountPrice >= formData.regularPrice}
           >
             {loading ? "Creating Listing..." : "Create Listing"}
